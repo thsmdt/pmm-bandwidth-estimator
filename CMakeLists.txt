@@ -4,5 +4,8 @@ project(pmm_bandwidth_estimator C)
 set(CMAKE_C_STANDARD 99)
 
 include_directories(include)
-add_executable(pmm_bandwidth_estimator src/memory/memory_inspector.c src/memory/memory_mock.c src/memory/memory_region.c src/memory/memory_view.c src/thread/thread_context.c src/thread/thread_exec.c)
+add_executable(pmm_bandwidth_estimator
+        src/memory/memory_inspector.c src/memory/memory_mock.c src/memory/memory_region.c  src/memory/memory_view.c
+        src/thread/thread_context.c src/thread/thread_exec.c
+        src/sampler/sampler_context.c src/sampler/sampler_core.c src/sampler/sampler_worker.c)
 target_link_libraries(pmm_bandwidth_estimator pthread)
