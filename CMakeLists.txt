@@ -7,5 +7,7 @@ include_directories(include)
 add_executable(pmm_bandwidth_estimator
         src/memory/memory_inspector.c src/memory/memory_mock.c src/memory/memory_region.c  src/memory/memory_view.c
         src/thread/thread_context.c src/thread/thread_exec.c
-        src/sampler/sampler_context.c src/sampler/sampler_core.c src/sampler/sampler_worker.c)
+        src/sampler/sampler_context.c src/sampler/sampler_core.c src/sampler/sampler_worker.c
+        src/nvmm/nvmm_lookup.c
+        src/mount/mount.c src/mount/mount_details.c)
 target_link_libraries(pmm_bandwidth_estimator pthread)
