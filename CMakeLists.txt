@@ -9,5 +9,6 @@ add_executable(pmm_bandwidth_estimator
         src/thread/thread_context.c src/thread/thread_exec.c
         src/sampler/sampler_context.c src/sampler/sampler_core.c src/sampler/sampler_worker.c
         src/nvmm/nvmm_lookup.c
-        src/mount/mount.c src/mount/mount_details.c)
+        src/mount/mount.c src/mount/mount_details.c
+        src/main.c)
 target_link_libraries(pmm_bandwidth_estimator pthread)
