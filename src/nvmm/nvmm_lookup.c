@@ -13,7 +13,7 @@ bool nvmm_lookup_init(struct nvmm_lookup_context *context) {
         LOG_ERROR("Could not initialize mount analyser");
         return false;
     }
-
+    mount_update(&context->mount_info);
     list_init(&context->cache);
 }
 
