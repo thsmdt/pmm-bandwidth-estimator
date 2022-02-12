@@ -72,8 +72,9 @@ void sampler_worker_iteration(struct sampler_context *context) {
     }
 }
 
+#define SAMPLES_PER_ITERATION 5000
 void sampler_worker_iteration_core(struct sampler_receiver *receiver, struct sampler_core_perf *core) {
-    while(true) {
+    for(size_t samples_this_iteration=0; samples_this_iteration<SAMPLES_PER_ITERATION; samples_this_iteration++) {
         struct perf_event_mmap_page *p = core->perf_mmap;
         char *pbuf = (char *) p + p->data_offset;
         __sync_synchronize();
