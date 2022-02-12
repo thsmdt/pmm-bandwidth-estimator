@@ -62,7 +62,7 @@ bool mount_details_init_by_line(struct mount_details *details, const char* line)
 
     if (sscanf(line, "%n%*s%n %n%*s%n %n%*s%n %n%*s%n %d %d",
                &device_start, &device_end, &mountpoint_start, &mountpoint_end, &filesystem_start, &filesystem_end,
-               &options_start, &options_end, &dummy_value_1, &dummy_value_2) < 10) {
+               &options_start, &options_end, &dummy_value_1, &dummy_value_2) != 2) {
         LOG_ERROR("Could not parse all mount parameters from line='%s'", line);
 
         PREPARE_DEBUG_SUBSTR(device, line, device_start, device_end);
