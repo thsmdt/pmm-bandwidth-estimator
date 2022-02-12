@@ -19,12 +19,6 @@ bool nvmm_lookup_init(struct nvmm_lookup_context *context) {
 
 bool nvmm_lookup_query(struct nvmm_lookup_context *context, const char* filepath) {
     // check in cache
-    struct nvmm_match_cache *entry;
-    list_for_each_entry(entry, &context->cache, list) {
-        if(path_on_mountpoint(filepath, entry->mountpoint)) {
-            return true;
-        }
-    }
 
     const struct mount_details* details = mount_query(&context->mount_info, filepath);
     if(!details) {
@@ -38,17 +32,6 @@ bool nvmm_lookup_query(struct nvmm_lookup_context *context, const char* filepath
     }
 
     // add to cache
-    size_t mountpoint_len = strlen(details->mount_path) + 1;
-    struct nvmm_match_cache *new_entry = malloc(sizeof(struct nvmm_match_cache) + mountpoint_len);
-    if(!new_entry) {
-        LOG_WARN("Could not cache nvmm match due to insufficient memory (mountpoint=%s)", details->mount_path);
-        // less optimized path
-        return true;
-    }
-    char* mountpoint = (void*)new_entry+sizeof(struct nvmm_match_cache);
-    memcpy(mountpoint, details->mount_path, mountpoint_len);
-    new_entry->mountpoint = mountpoint;
-    list_add_after(&context->cache, &new_entry->list);
     return true;
 }
 
