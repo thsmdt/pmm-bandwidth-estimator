@@ -55,11 +55,12 @@ bool mount_update(struct  mount_context *context) {
     free(line_content);
 
     struct mount_cache *upnext;
-    list_for_each_entry_safe_continue(current, upnext, &context->mount_cache, list) {
-        mount_details_deinit(&current->details);
-        list_remove(&current->list);
-        free(current);
-    }
+    if(!list_entry_is_head(current, &context->mount_cache, list))
+        list_for_each_entry_safe_continue(current, upnext, &context->mount_cache, list) {
+            mount_details_deinit(&current->details);
+            list_remove(&current->list);
+            free(current);
+        }
 
     if(!feof(mount_file) || ferror(mount_file)) {
         LOG_ERROR("error occurred during the processing of mount file - errno=%d (%s)", errno, strerror(errno));
