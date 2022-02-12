@@ -56,7 +56,7 @@ void sampler_worker(void* argument) {
         if (timespec_diff(&remaining_sleep, &max_sleep_duration, &time_passed) == 0) {
             do {
                 time_to_sleep = remaining_sleep;
-                nanosleep(&time_to_sleep, &remaining_sleep);
+                if(nanosleep(&time_to_sleep, &remaining_sleep) == 0) break;
             } while(remaining_sleep.tv_nsec != 0 && remaining_sleep.tv_sec != 0);
         }
     }
