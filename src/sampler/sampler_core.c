@@ -6,7 +6,7 @@
 #include <logger.h>
 #include <sys/mman.h>
 
-#define PERF_PAGES	(1 + (1 << 8))	// 1+2^n
+#define PERF_PAGES	(1 + (1 << 12))	// 1+2^n
 #define PERF_PAGES_SIZE sysconf(_SC_PAGESIZE) * PERF_PAGES
 
 long perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu, int group_fd, unsigned long flags) {
