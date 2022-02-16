@@ -2,6 +2,8 @@
 
 #include <sys/time.h>
 #include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include "logger.h"
 
 void sampler_worker_iteration_core(struct sampler_receiver *receiver, struct sampler_core_perf *core);
@@ -73,7 +75,9 @@ void sampler_worker_iteration(struct sampler_context *context) {
 }
 
 #define SAMPLES_PER_ITERATION 5000
+#define MAX_PERF_EVENT_LENGTH 64
 void sampler_worker_iteration_core(struct sampler_receiver *receiver, struct sampler_core_perf *core) {
+    char temp_buffer[MAX_PERF_EVENT_LENGTH];
     for(size_t samples_this_iteration=0; samples_this_iteration<SAMPLES_PER_ITERATION; samples_this_iteration++) {
         struct perf_event_mmap_page *p = core->perf_mmap;
         char *pbuf = (char *) p + p->data_offset;
@@ -84,6 +88,23 @@ void sampler_worker_iteration_core(struct sampler_receiver *receiver, struct sam
         }
 
         struct perf_event_header *ph = (void *)(pbuf + (p->data_tail % p->data_size));
+        size_t bytes_to_overflow = p->data_size - (p->data_tail%p->data_size);
+        if(bytes_to_overflow < 8) {
+            LOG_CRITICAL("PerfEvent overflowing: Not enough space for entire header. Needs additional logic. Crashing for now on core=%d.", core->cpuid);
+            // TODO: implement
+            exit(-1);
+        }
+        if(bytes_to_overflow < ph->size) {
+            if(ph->size > MAX_PERF_EVENT_LENGTH) {
+                LOG_CRITICAL("PerfEvent overflowing: Allocated %dbytes for this scenario, but %dbytes required. Crashing for now on core=%d", MAX_PERF_EVENT_LENGTH, ph->size, core->cpuid);
+                // TODO: implement alternative
+                exit(-1);
+            }
+            LOG_DEBUG("PerfEvent overflow: handling this :)");
+            memcpy(temp_buffer, ph, bytes_to_overflow);
+            memcpy(temp_buffer+bytes_to_overflow, pbuf, ph->size-bytes_to_overflow);
+            ph = (struct perf_event_header*) temp_buffer;
+        }
 
         switch(ph->type) {
             case PERF_RECORD_LOST:
