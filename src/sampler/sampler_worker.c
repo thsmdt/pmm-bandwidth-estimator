@@ -86,9 +86,28 @@ void sampler_worker_iteration_core(struct sampler_receiver *receiver, struct sam
         struct perf_event_header *ph = (void *)(pbuf + (p->data_tail % p->data_size));
 
         switch(ph->type) {
+            case PERF_RECORD_LOST:
+            {
+                if(receiver->record_lost != NULL)
+                    receiver->record_lost(core->cpuid, (struct perf_record_lost*)ph);
+            }
+                break;
+            case PERF_RECORD_THROTTLE:
+            {
+                if(receiver->record_throttle != NULL)
+                    receiver->record_throttle(core->cpuid, (struct perf_record_throttle*)ph);
+            }
+                break;
+            case PERF_RECORD_UNTHROTTLE:
+            {
+                if(receiver->record_unthrottle != NULL)
+                    receiver->record_unthrottle(core->cpuid, (struct perf_record_throttle*)ph);
+            }
+                break;
             case PERF_RECORD_SAMPLE:
             {
-                receiver->record_sample(core->cpuid, ph);
+                if(receiver->record_sample != NULL)
+                    receiver->record_sample(core->cpuid, ph);
             }
                 break;
 
