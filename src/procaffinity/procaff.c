@@ -214,7 +214,7 @@ struct procaff_process* procaff_process_known(struct procaff_context *context, p
 void procaff_policy_set(pid_t pid, cpu_set_t *cpu_set) {
     sched_setaffinity(pid, sizeof(cpu_set_t), cpu_set);
 
-#ifdef LOGGER_ENABLE_TRACE
+#ifdef LOGGER_ENABLE_INFO
     char stringified_cpus[256];
     size_t stringified_cpus_len = 0;
     for(int core_it = 0; core_it < get_nprocs(); core_it++) {
@@ -223,7 +223,7 @@ void procaff_policy_set(pid_t pid, cpu_set_t *cpu_set) {
     }
     stringified_cpus[stringified_cpus_len-1] = '\0'; // override trailing comma
 #endif
-    LOG_TRACE("Updated affinity of pid=%d to cpu -- cores=%s", pid, stringified_cpus);
+    LOG_INFO("Updated affinity of pid=%d to cpu -- cores=%s", pid, stringified_cpus);
 }
 
 void procaff_policy_reset(pid_t pid) {
