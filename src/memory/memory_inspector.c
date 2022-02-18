@@ -37,6 +37,17 @@ const struct memregion_context* meminspect_lookup_region(struct meminspect_conte
     return &cache_entry->region;
 }
 
+const struct memregion_context* meminspect_lookup_update(struct meminspect_context *context, const void *address) {
+    const struct memregion_context *memregion = NULL;
+    for (int retry = 0; retry < 2; retry++) {
+        memregion = meminspect_lookup_region(context, (void *) address);
+        if (!memregion) {
+            meminspect_update(context);
+        }
+    }
+    return memregion;
+}
+
 #define FILEPATH_MAX_LENGTH 64
 #define FILEPATH_TEMPLATE "/proc/%d/maps"
 bool meminspect_update(struct meminspect_context *context) {

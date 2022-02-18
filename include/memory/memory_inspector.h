@@ -20,5 +20,6 @@ void meminspect_deinit(struct meminspect_context *context);
 bool meminspect_update(struct meminspect_context *context);
 
 const struct memregion_context* meminspect_lookup_region(struct meminspect_context *context, const void *address);
+const struct memregion_context* meminspect_lookup_update(struct meminspect_context *context, const void *address);
 
 void meminspect_print_cache(struct meminspect_context *context);

@@ -34,15 +34,9 @@ void sample_receiver_func(cpuid_t cpuid, const struct perf_event_header* ph) {
         return;
     }
 
-    struct memregion_context *memregion = NULL;
-    for(int retry = 0; retry < 2; retry++) {
-        memregion = meminspect_lookup_region(meminspect, (void*)ps->addr);
-        if (!memregion) {
-            meminspect_update(meminspect);
-        }
-    }
+    const struct memregion_context *memregion = meminspect_lookup_update(meminspect, (void *) ps->addr);
     if(!memregion) {
-        LOG_WARN("Unable to determine memory region of write access: pid=%d, tid=%d, mem_addr=%p", ps->pid, ps->tid, ps->addr);
+        LOG_WARN("Unable to determine memory region of write access: pid=%d, tid=%d, mem_addr=%llu", ps->pid, ps->tid, ps->addr);
         return;
     }
 
