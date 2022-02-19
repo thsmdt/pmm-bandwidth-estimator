@@ -3,6 +3,8 @@
 #include <string.h>
 #include <malloc.h>
 
+#include <logger.h>
+
 bool meminspector_range_parse(struct memregion_list *entry, const char* line);
 bool meminspector_range_matches_address(const struct memregion_context *cache_entry, void *address);
 void meminspector_cache_free(struct memregion_list *range);
@@ -48,7 +50,7 @@ const struct memregion_context* meminspect_lookup_update(struct meminspect_conte
     return memregion;
 }
 
-#define FILEPATH_MAX_LENGTH 64
+#define FILEPATH_MAX_LENGTH 32
 #define FILEPATH_TEMPLATE "/proc/%d/maps"
 bool meminspect_update(struct meminspect_context *context) {
     // create file path
@@ -57,14 +59,14 @@ bool meminspect_update(struct meminspect_context *context) {
 
     filepath_length = snprintf(filepath_buffer, sizeof filepath_buffer, FILEPATH_TEMPLATE, context->pid);
     if(filepath_length >= FILEPATH_MAX_LENGTH) {
-        fprintf(stderr, "%s: Unable to build filepath to memory map for pid=%d: buffer too small.\n", __FUNCTION__, context->pid);
+        LOG_ERROR("Unable to build path to memory map for pid=%d: buffer too small", context->pid);
         return false;
     }
 
     // open file
     FILE *maps_file = fopen(filepath_buffer, "r");
     if(!maps_file) {
-        fprintf(stderr, "%s: Unable to open memory maps file with path=%s\n", __FUNCTION__, filepath_buffer);
+        LOG_ERROR("Unable to open memory maps file with path=%s for pid=%d", filepath_buffer, context->pid);
         return false;
     }
 
@@ -77,7 +79,7 @@ bool meminspect_update(struct meminspect_context *context) {
         if(current_range_entry == NULL) {
             current_range_entry = malloc(sizeof(struct memregion_list));
             if(!current_range_entry) {
-                fprintf(stderr, "%s: unable to allocate memory for memregion_list. Freeing current memregion_cache progress.\n", __FUNCTION__);
+                LOG_ERROR("Unable to allocate memory for memory region list. Freeing current cache progress.");
                 free(line_content);
                 meminspector_cache_free(context->memregion_cache);
                 return false;
@@ -94,7 +96,7 @@ bool meminspect_update(struct meminspect_context *context) {
         // process single line_content
         int ret = memregion_init_by_line(&current_range_entry->region, line_content);
         if(!ret) {
-            fprintf(stderr, "%s: Issue parsing range from line. Freeing current memregion_cache progress.\n", __FUNCTION__);
+            LOG_ERROR("Issue parsing range from line. Freeing current memregion_cache progress");
             free(line_content);
             meminspector_cache_free(context->memregion_cache);
             return false;
@@ -111,13 +113,13 @@ bool meminspect_update(struct meminspect_context *context) {
     }
 
     if(!feof(maps_file) || ferror(maps_file)) {
-        fprintf(stderr, "%s: error occurred during the processing of maps file!\n", __FUNCTION__ );
+        LOG_ERROR("Error occurred during the processing of maps file!");
         meminspector_cache_free(context->memregion_cache);
         return false;
     }
 
     if(fclose(maps_file)) {
-        fprintf(stderr, "%s: error closing file", __FUNCTION__ );
+        LOG_ERROR("Error closing file=%s", filepath_buffer);
         meminspector_cache_free(context->memregion_cache);
         return false;
     }
@@ -151,11 +153,11 @@ struct memregion_list* meminspector_range_free(struct memregion_list *range) {
     return next;
 }
 
-void meminspect_print_cache(struct meminspect_context *context) {
+void meminspect_log_cache(struct meminspect_context *context) {
     struct memregion_list *current = context->memregion_cache;
     while(current) {
         struct memregion_context *region = &current->region;
-        printf("meminspect cache entry: %18p-%18p %c%c%c%c %08lx %04lx:%04lx %10zu %s\n",
+        LOG_INFO("meminspect cache entry: %18p-%18p %c%c%c%c %08lx %04lx:%04lx %10zu %s\n",
                region->address,
                region->length+region->address,
                region->read ? 'r' : '-',

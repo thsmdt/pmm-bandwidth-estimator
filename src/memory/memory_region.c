@@ -4,6 +4,8 @@
 #include <malloc.h>
 #include <stdio.h>
 
+#include <logger.h>
+
 int memregion_init(struct memregion_context *context, void* addr_start, size_t length, bool perm_read, bool perm_write, bool perm_exec,
                    bool perm_private, dev_t device_minor, dev_t device_major, size_t inode, size_t offset,
                    const char* label) {
@@ -49,7 +51,7 @@ int memregion_init_by_line(struct memregion_context *context, const char* proc_m
 
     char* label_buffer = malloc(name_length + 1);
     if(!label_buffer) {
-        fprintf(stderr, "%s: unable to alloc memory for label\n", __FUNCTION__);
+        LOG_ERROR("Unable to alloc memory for label");
         return false;
     }
     memcpy(label_buffer, proc_maps_line + name_start, name_length);

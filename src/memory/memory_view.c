@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <logger.h>
+
 int memview_init(struct memview_context *context, const struct memregion_context *region) {
     int ret = -1;
 
@@ -22,14 +24,14 @@ int memview_init(struct memview_context *context, const struct memregion_context
     errno = 0;
     int fd = open(filename_copy, O_RDONLY);
     if(fd == -1) {
-        printf("%s/%s: Could not open file=%s -- errno=%d (%s)\n", __FILE__, __FUNCTION__, filename_copy, errno, strerror(errno));
+        LOG_ERROR("Could not open file=%s -- errno=%d (%s)\n",filename_copy, errno, strerror(errno));
         goto error;
     }
 
     // mmap
     void* mapping_addr = mmap(NULL, region->length, PROT_READ, MAP_PRIVATE, fd, region->offset);
     if(!mapping_addr || (unsigned long long int) mapping_addr == (unsigned long long)-1) {
-        printf("%s/%s: Unable to memory map file=%s - errno=%d (%s)\n", __FILE__, __FUNCTION__, filename_copy, errno,
+        LOG_ERROR("Unable to memory map file=%s - errno=%d (%s)\n", filename_copy, errno,
                strerror(errno));
         goto close_file;
     }

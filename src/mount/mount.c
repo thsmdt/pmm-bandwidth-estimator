@@ -68,7 +68,7 @@ bool mount_update(struct  mount_context *context) {
     }
 
     if(fclose(mount_file)) {
-        fprintf(stderr, "%s: error closing file", __FUNCTION__ );
+        LOG_ERROR("Error closing file=%s", filepath);
         goto reset_cache;
     }
 
