@@ -9,6 +9,7 @@ bool memmock_memview_cache_append(struct memmock_context *context, struct memvie
 
 
 int memmock_init(struct memmock_context *context, pid_t pid) {
+    context->pid = pid;
     context->memview_cache = NULL;
     meminspect_init(&context->inspector, pid);
 }

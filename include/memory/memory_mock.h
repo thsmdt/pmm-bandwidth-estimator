@@ -10,6 +10,7 @@ struct memview_list {
 };
 
 struct memmock_context {
+    pid_t pid;
     struct meminspect_context inspector;
     struct memview_list *memview_cache;
 };
