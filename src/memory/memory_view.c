@@ -54,6 +54,11 @@ int memview_init(struct memview_context *context, const struct memregion_context
 
 void* memview_lookup(struct memview_context *context, void* lookup) {
     size_t local_offset = context->mapping_start - context->start_address_lookup;
+    size_t offset_in_region = lookup - context->start_address_lookup;
+    if(offset_in_region > context->mapping_length) {
+        return NULL;
+    }
+
     return lookup + local_offset;
 }
 
