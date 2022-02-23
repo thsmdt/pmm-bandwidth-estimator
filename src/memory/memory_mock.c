@@ -44,16 +44,8 @@ void* memmock_get(struct memmock_context *context, void* addr) {
 }
 
 const char* memmock_get_label(struct memmock_context *context, void* addr) {
-    for(int retry = 0; retry < 2; retry++) {
-        struct memregion_context *memregion = meminspect_lookup_region(&context->inspector, addr);
-        if (memregion) {
-            return memregion->label;
-        }
-
-        meminspect_update(&context->inspector);
-    }
-
-    return NULL;
+    struct memregion_context *memregion = meminspect_lookup_update(&context->inspector, addr);
+    return memregion ? memregion->label : NULL;
 }
 
 
