@@ -20,4 +20,4 @@ struct access_accounting {
 bool access_accounting_init(struct access_accounting *context, struct memmkcache_context *existing_memmock);
 bool access_accounting_deinit(struct access_accounting *context);
 
-bool access_accounting_write(struct access_accounting *context, pid_t pid, void* insn_ptr);
+bool access_accounting_write(struct access_accounting *context, pid_t pid, pid_t tid, void* insn_ptr);

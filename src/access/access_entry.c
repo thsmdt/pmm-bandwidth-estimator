@@ -12,6 +12,7 @@ bool access_entry_init(struct access_entry *context, pid_t pid) {
 #ifdef FEATUREFLAG_ACCESS_STORE_INSTRUCTIONS
     list_init(&context->bytes_written_by_insn);
 #endif
+    list_init(&context->bytes_written_by_tid);
 }
 
 bool access_entry_deinit(struct access_entry *context) {
@@ -23,32 +24,58 @@ bool access_entry_deinit(struct access_entry *context) {
         free(current);
     }
 #endif
+    struct access_entry_thread *current_tid, *nextup_tid;
+    list_for_each_entry_safe(current_tid, nextup_tid, &context->bytes_written_by_tid, list) {
+        list_remove(&current_tid->list);
+        access_entry_thread_deinit(current_tid);
+        free(current_tid);
+    }
 }
 
-bool access_entry_track_write(struct access_entry *context, size_t access_size, const char* insn, void* _) {
+bool access_entry_track_write(struct access_entry *context, pid_t tid, size_t access_size, const char* insn, void* _) {
     context->bytes_written_total += access_size;
     context->write_access_total += 1;
 
 #ifdef FEATUREFLAG_ACCESS_STORE_INSTRUCTIONS
-    struct access_entry_insn *current, *match = NULL;
-    list_for_each_entry(current, &context->bytes_written_by_insn, list) {
-        if(strcmp(current->insn, insn) == 0) {
-            match = current;
+    struct access_entry_insn *current_insn, *match_insn = NULL;
+    list_for_each_entry(current_insn, &context->bytes_written_by_insn, list) {
+        if(strcmp(current_insn->insn, insn) == 0) {
+            match_insn = current_insn;
             break;
         }
     }
-    if(!match) {
-        match = malloc(sizeof(struct access_entry_insn));
-        if(!match) {
+    if(!match_insn) {
+        match_insn = malloc(sizeof(struct access_entry_insn));
+        if(!match_insn) {
             LOG_ERROR("Unable to allocate memory for new access' instruction tracking entry");
             return false;
         }
-        access_entry_insn_init(match, insn);
-        list_add_after( &context->bytes_written_by_insn, &match->list);
+        access_entry_insn_init(match_insn, insn);
+        list_add_after( &context->bytes_written_by_insn, &match_insn->list);
     }
 
-    access_entry_insn_track(match, access_size);
+    access_entry_insn_track(match_insn, access_size);
 #endif
+
+    struct access_entry_thread *current_tid, *match_tid = NULL;
+    list_for_each_entry(current_tid, &context->bytes_written_by_tid, list) {
+        if(current_tid->tid == tid) {
+            match_tid = current_tid;
+            break;
+        }
+    }
+    if(!match_tid) {
+        match_tid = malloc(sizeof(struct access_entry_thread));
+        if(!match_tid) {
+            LOG_ERROR("Unable to allocate memory for new access' thread tracking entry");
+            return false;
+        }
+        access_entry_thread_init(match_tid, tid);
+        list_add_after( &context->bytes_written_by_tid, &match_tid->list);
+    }
+
+    access_entry_thread_track(match_tid, access_size);
+
     return true;
 }
 
@@ -79,3 +106,19 @@ bool access_entry_insn_track(struct access_entry_insn *context, size_t access_si
     context->bytes_written_total += access_size;
 }
 #endif
+
+bool access_entry_thread_init(struct access_entry_thread *context, pid_t tid) {
+    context->bytes_written_total = 0;
+    context->write_access_total = 0;
+    context->tid = tid;
+    return true;
+}
+
+bool access_entry_thread_deinit(struct access_entry_thread *context) {
+    return true;
+}
+
+bool access_entry_thread_track(struct access_entry_thread *context, size_t access_size) {
+    context->write_access_total += 1;
+    context->bytes_written_total += access_size;
+}

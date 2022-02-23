@@ -11,9 +11,12 @@
  * JSON Output Format
  * [
  * {"timestamp": "<timestamp>", "processes": [
- *      {"pid": <PID>, "written_total": <total>,
+ *      {"pid": <PID>, "written_total": <total>, "access_write_total": <total_accesses>
  *       "written_per_instruction": [
  *          {"instruction": "<insn>", "written_total": <total_per_insn>, "access_write_total": <total_accesses>}
+ *        ],
+ *       "written_per_thread": [
+ *          {"thread": <tid>>, "written_total": <total_per_insn>, "access_write_total": <total_accesses>}
  *        ]
  *       }
  *    ]
@@ -100,22 +103,37 @@ void access_worker_iteration(struct access_accounting *context, bool first) {
 }
 
 void access_worker_dump_entry(struct access_entry *entry) {
-    fprintf(stdout, "{\"pid\": %d, \"written_total\": %zu", entry->pid, entry->bytes_written_total);
+    fprintf(stdout, "{\"pid\": %d, \"written_total\": %zu, \"access_write_total\": %zu", entry->pid, entry->bytes_written_total, entry->write_access_total);
 
 #ifdef FEATUREFLAG_ACCESS_STORE_INSTRUCTIONS
     fprintf(stdout, ", \"written_per_instruction\": [");
 
-    struct access_entry_insn *current, *next;
-    list_for_each_entry_safe(current, next, &entry->bytes_written_by_insn, list) {
+    struct access_entry_insn *current_insn, *next_insn;
+    list_for_each_entry_safe(current_insn, next_insn, &entry->bytes_written_by_insn, list) {
 
         fprintf(stdout, "{\"instruction\": \"%s\", \"written_total\": %zu, \"access_write_total\": %zu}",
-                current->insn, current->bytes_written_total, current->write_access_total);
+                current_insn->insn, current_insn->bytes_written_total, current_insn->write_access_total);
 
-        if(!list_entry_is_head(next, &entry->bytes_written_by_insn, list)) {
+        if(!list_entry_is_head(next_insn, &entry->bytes_written_by_insn, list)) {
             fprintf(stdout, ",");
         }
     }
     fprintf(stdout, "]");
 #endif
+
+    fprintf(stdout, ", \"written_per_thread\": [");
+
+    struct access_entry_thread *current_tid, *next_tid;
+    list_for_each_entry_safe(current_tid, next_tid, &entry->bytes_written_by_tid, list) {
+
+        fprintf(stdout, "{\"tid\": %d, \"written_total\": %zu, \"access_write_total\": %zu}",
+                current_tid->tid, current_tid->bytes_written_total, current_tid->write_access_total);
+
+        if(!list_entry_is_head(next_tid, &entry->bytes_written_by_tid, list)) {
+            fprintf(stdout, ",");
+        }
+    }
+    fprintf(stdout, "]");
+
     fprintf(stdout, "}");
 }

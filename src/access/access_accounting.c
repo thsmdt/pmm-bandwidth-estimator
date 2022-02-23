@@ -64,7 +64,7 @@ bool access_accounting_deinit(struct access_accounting *context) {
     return true;
 }
 
-bool access_accounting_write(struct access_accounting *context, pid_t pid, void* insn_ptr) {
+bool access_accounting_write(struct access_accounting *context, pid_t pid, pid_t tid, void* insn_ptr) {
     bool ret = false;
     pthread_rwlock_wrlock(&context->rw_lock);
 
@@ -95,7 +95,7 @@ bool access_accounting_write(struct access_accounting *context, pid_t pid, void*
         LOG_WARN("Could not determine access_size for write of pid=%d - estimations may be inaccurate", pid);
     }
 
-    access_entry_track_write(match, instruction.access_size, instruction.insn, insn_ptr);
+    access_entry_track_write(match, tid, instruction.access_size, instruction.insn, insn_ptr);
     ret = true;
 
     error:
