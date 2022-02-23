@@ -11,7 +11,9 @@ bool sampler_init(struct sampler_context* context, struct perf_event_attr *perf_
     context->sample_receiver = sample_receiver;
     context->perf_event_attr = perf_attr;
 
-    thread_init(&context->worker_thread, sampler_worker, context);
+    bool ret = thread_init(&context->worker_thread, sampler_worker, context);
+
+    return ret;
 }
 
 bool sampler_core_register(struct sampler_context* context, int cpu_id) {
@@ -71,4 +73,6 @@ bool sampler_deinit(struct sampler_context* context) {
         free(this);
     }
     context->registered_cores = NULL;
+
+    return true;
 }

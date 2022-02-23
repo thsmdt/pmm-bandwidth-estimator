@@ -22,6 +22,7 @@ void procaff_policy_reset(pid_t pid);
 bool procaff_init(struct procaff_context *context) {
     list_init(&context->groups);
     list_init(&context->processes);
+    return true;
 }
 
 bool procaff_deinit(struct procaff_context *context) {
@@ -29,6 +30,8 @@ bool procaff_deinit(struct procaff_context *context) {
     list_for_each_entry_safe(current_group, next_group, &context->groups, list) {
         procaff_destroy_group(context, current_group->id);
     }
+
+    return true;
 }
 
 bool procaff_create_group(struct procaff_context *context, procaff_group_t id, struct timespec *default_expiry) {

@@ -37,4 +37,6 @@ bool thread_join(struct thread_context* context) {
 bool thread_deinit(struct thread_context* context) {
     LOG_TRACE("De-initializing thread");
     pthread_cancel(context->pthread_reference);
+
+    return false;
 }

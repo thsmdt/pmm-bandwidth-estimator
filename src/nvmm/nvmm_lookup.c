@@ -15,6 +15,8 @@ bool nvmm_lookup_init(struct nvmm_lookup_context *context) {
     }
     mount_update(&context->mount_info);
     list_init(&context->cache);
+
+    return true;
 }
 
 bool nvmm_lookup_query(struct nvmm_lookup_context *context, const char* filepath) {
