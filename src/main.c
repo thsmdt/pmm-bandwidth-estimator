@@ -4,8 +4,8 @@
 #include <logger.h>
 #include <sampler/sampler_context.h>
 #include <procaffinity/procaff.h>
-#include <memory/memory_inspector_cache.h>
 #include <nvmm/nvmm_lookup.h>
+#include <access/access_accounting.h>
 
 struct perf_sample {
     struct perf_event_header header;
@@ -16,36 +16,40 @@ struct perf_sample {
 
 struct sampler_context sampler_context;
 struct procaff_context procaff;
-struct meminscache_context meminscache;
 struct nvmm_lookup_context nvmm;
+struct memmkcache_context memmkcache;
+struct access_accounting accounting;
 
 void sample_receiver_func(cpuid_t cpuid, const struct perf_event_header* ph) {
     struct perf_sample *ps = (void *)ph;
     LOG_TRACE("Access on cpu=%3d: tid=%6d ip=%p, addr=%p", cpuid, ps->tid, ps->ip, ps->addr);
 
-    if(ps->addr == NULL || ps->pid == -1) {
+    if((void *) ps->addr == NULL || ps->pid == -1) {
         // TODO: investigate
         return;
     }
 
-    struct meminspect_context *meminspect = meminscache_get(&meminscache, ps->pid);
-    if(!meminspect) {
+    struct memmock_context *memmock = memmkcache_get(&memmkcache, ps->pid);
+    if(!memmock) {
         LOG_ERROR("Unable to load memory mapping for pid=%d (tid=%d)", ps->pid, ps->tid);
         return;
     }
 
-    const struct memregion_context *memregion = meminspect_lookup_update(meminspect, (void *) ps->addr);
-    if(!memregion) {
-        LOG_WARN("Unable to determine memory region of write access: pid=%d, tid=%d, mem_addr=%llu", ps->pid, ps->tid, ps->addr);
+    const char* memaccess_file_label = memmock_get_label(memmock, (void *) ps->addr);
+    if(!memaccess_file_label) {
+        LOG_WARN("Unable to determine file written to: pid=%d, tid=%d, mem_addr=%llu", ps->pid, ps->tid, ps->addr);
         return;
     }
 
-    if(memregion->label[0] != '/') {
+    if(*memaccess_file_label != '/') {
         LOG_TRACE("Found a label that is not a file");
         return;
     }
 
-    bool isNVMM = nvmm_lookup_query(&nvmm, memregion->label);
+    bool isNVMM = nvmm_lookup_query(&nvmm, memaccess_file_label);
+    if(isNVMM) {
+        access_accounting_write(&accounting,ps->pid, ps->tid, ps->ip);
+    }
     procaff_process_assign(&procaff, isNVMM ? 1 : 0, ps->tid);
 }
 
@@ -75,8 +79,9 @@ int main(void) {
 
     sampler_init(&sampler_context, &attr, &sample_receiver);
     procaff_init(&procaff);
-    meminscache_init(&meminscache, &expiry_default);
     nvmm_lookup_init(&nvmm);
+    memmkcache_init(&memmkcache, &expiry_default);
+    access_accounting_init(&accounting, &memmkcache);
 
     procaff_create_group(&procaff, 0, &expiry_default);
     procaff_create_group(&procaff, 1, &expiry_nvmm);
