@@ -1,11 +1,20 @@
 #include <sys/sysinfo.h>
 #include <string.h>
+#include <signal.h>
 
 #include <logger.h>
 #include <sampler/sampler_context.h>
 #include <procaffinity/procaff.h>
 #include <nvmm/nvmm_lookup.h>
 #include <access/access_accounting.h>
+
+volatile sig_atomic_t terminated = 0;
+
+void term(int signum)
+{
+    terminated = 1;
+}
+
 
 struct perf_sample {
     struct perf_event_header header;
@@ -54,6 +63,11 @@ void sample_receiver_func(cpuid_t cpuid, const struct perf_event_header* ph) {
 }
 
 int main(void) {
+    struct sigaction action;
+    memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = term;
+    sigaction(SIGTERM, &action, NULL);
+
     LOG_INFO("Preparing start of environment");
     int num_cpu_cores = get_nprocs();
     cpuid_t worker_thread_core = 0;
@@ -77,10 +91,10 @@ int main(void) {
 
     struct sampler_receiver sample_receiver = {NULL, NULL, NULL, sample_receiver_func };
 
-    sampler_init(&sampler_context, &attr, &sample_receiver);
+    memmkcache_init(&memmkcache, &expiry_default);
     procaff_init(&procaff);
     nvmm_lookup_init(&nvmm);
-    memmkcache_init(&memmkcache, &expiry_default);
+    sampler_init(&sampler_context, &attr, &sample_receiver);
     access_accounting_init(&accounting, &memmkcache);
 
     procaff_create_group(&procaff, 0, &expiry_default);
@@ -90,5 +104,17 @@ int main(void) {
         procaff_assign_core(&procaff, core < 3 ? 1 : 0, core);
     }
 
-    while(true);
+    struct timespec sleep = {0, 5000000};
+    while(!terminated) {
+        nanosleep(&sleep, NULL);
+    }
+
+    LOG_INFO("Received SIGTERM signal");
+    access_accounting_deinit(&accounting);
+    sampler_deinit(&sampler_context);
+    nvmm_lookup_deinit(&nvmm);
+    procaff_deinit(&procaff);
+    memmkcache_deinit(&memmkcache);
+
+    exit(0);
 }
