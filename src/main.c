@@ -82,7 +82,7 @@ int main(void) {
     attr.type = PERF_TYPE_RAW;
     attr.size = sizeof(struct perf_event_attr);
     attr.config = 0x82d0; // mem_inst_retired.all_stores *
-    attr.sample_period = 997;
+    attr.sample_period =  19391;
     attr.sample_type = PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_ADDR;
 
     attr.disabled = 0;

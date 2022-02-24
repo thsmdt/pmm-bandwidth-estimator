@@ -47,7 +47,7 @@ void sampler_worker_iteration(struct sampler_context *context) {
     }
 }
 
-#define SAMPLES_PER_ITERATION 5000
+#define SAMPLES_PER_ITERATION 50000
 #define MAX_PERF_EVENT_LENGTH 64
 void sampler_worker_iteration_core(struct sampler_receiver *receiver, struct sampler_core_perf *core) {
     char temp_buffer[MAX_PERF_EVENT_LENGTH];
