@@ -20,3 +20,4 @@ bool procaff_unassign_core(struct procaff_context *context, procaff_group_t grou
 
 bool procaff_process_assign(struct procaff_context *context, procaff_group_t group, pid_t pid);
 bool procaff_process_unassign(struct procaff_context *context, pid_t pid);
+bool procaff_process_get(struct procaff_context *context, procaff_group_t* group_output, pid_t);

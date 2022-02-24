@@ -239,3 +239,12 @@ void procaff_policy_reset(pid_t pid) {
 
     procaff_policy_set(pid, &cpu_set);
 }
+
+bool procaff_process_get(struct procaff_context *context, procaff_group_t* group_output, pid_t pid) {
+    struct procaff_process *process = procaff_process_known(context, pid);
+    if(!process) {
+        return false;
+    }
+    *group_output = process->group;
+    return true;
+}
