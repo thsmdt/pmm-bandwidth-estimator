@@ -9,6 +9,8 @@
 #include <access/access_accounting.h>
 #include <procaffinity/helper.h>
 
+#define DEFAULT_SAMPLE_PERIOD 9973
+
 volatile sig_atomic_t terminated = 0;
 
 void term(int signum)
@@ -79,7 +81,15 @@ int main(int argc, char** argv) {
     action.sa_handler = term;
     sigaction(SIGTERM, &action, NULL);
 
-    LOG_INFO("Preparing start of environment");
+    const char* environment_sample_period = getenv("PBE_SAMPLE_PERIOD");
+    int sample_period = DEFAULT_SAMPLE_PERIOD;
+    if(environment_sample_period && sscanf(environment_sample_period, "%d", &sample_period) != 1) {
+        sample_period++;
+        LOG_ERROR("Unable to parse sample period from environment.");
+    }
+
+
+    LOG_INFO("Preparing start of environment with sampling rate=%d", sample_period);
     int num_cpu_cores = get_nprocs();
     cpuid_t worker_thread_core = 0;
     struct timespec expiry_default = {60, 0}, expiry_nvmm = {30, 0};
@@ -90,7 +100,7 @@ int main(int argc, char** argv) {
     attr.type = PERF_TYPE_RAW;
     attr.size = sizeof(struct perf_event_attr);
     attr.config = 0x82d0; // mem_inst_retired.all_stores *
-    attr.sample_period =  19391;
+    attr.sample_period =  sample_period;
     attr.sample_type = PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_ADDR;
 
     attr.disabled = 0;
