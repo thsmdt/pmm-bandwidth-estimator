@@ -7,6 +7,7 @@
 #include <procaffinity/procaff.h>
 #include <nvmm/nvmm_lookup.h>
 #include <access/access_accounting.h>
+#include <procaffinity/helper.h>
 
 volatile sig_atomic_t terminated = 0;
 
@@ -65,7 +66,14 @@ void sample_receiver_func(cpuid_t cpuid, const struct perf_event_header* ph) {
     procaff_process_assign(&procaff, isNVMM ? 1 : 0, ps->tid);
 }
 
-int main(void) {
+int main(int argc, char** argv) {
+    if(argc < 3) {
+        return -1;
+    }
+
+    char* all_cores = argv[1];
+    char* nvmm_cores = argv[2];
+
     struct sigaction action;
     memset(&action, 0, sizeof(struct sigaction));
     action.sa_handler = term;
@@ -102,9 +110,13 @@ int main(void) {
 
     procaff_create_group(&procaff, 0, &expiry_default);
     procaff_create_group(&procaff, 1, &expiry_nvmm);
-    for(cpuid_t core = 1; core < num_cpu_cores; core++) {
-        sampler_core_register(&sampler_context, core);
-        procaff_assign_core(&procaff, core < 3 ? 1 : 0, core);
+    for(cpuid_t core = 0; core < num_cpu_cores; core++) {
+        if(cpu_in_cpulist(all_cores, core)) {
+            sampler_core_register(&sampler_context, core);
+
+            bool isNVMM = cpu_in_cpulist(nvmm_cores, core);
+            procaff_assign_core(&procaff, isNVMM? 1 : 0, core);
+        }
     }
 
     struct timespec sleep = {0, 5000000};
