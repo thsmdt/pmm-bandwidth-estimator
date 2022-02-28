@@ -59,6 +59,10 @@ bool sampler_core_register(struct sampler_context* context, int cpu_id) {
     return false;
 }
 
+void sampler_cputime(struct sampler_context *context, struct timespec *cputime) {
+    thread_cputime(&context->worker_thread, cputime);
+}
+
 bool sampler_deinit(struct sampler_context* context) {
     thread_signal_stop(&context->worker_thread);
     thread_join(&context->worker_thread);

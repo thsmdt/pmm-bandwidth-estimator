@@ -68,6 +68,7 @@ void sample_receiver_func(cpuid_t cpuid, const struct perf_event_header* ph) {
     procaff_process_assign(&procaff, isNVMM ? 1 : 0, ps->tid);
 }
 
+#define TIMESPEC_TO_MS(timespec) ((size_t)(timespec.tv_sec*1000 + timespec.tv_nsec/1000000))
 int main(int argc, char** argv) {
     if(argc < 3) {
         return -1;
@@ -80,6 +81,7 @@ int main(int argc, char** argv) {
     memset(&action, 0, sizeof(struct sigaction));
     action.sa_handler = term;
     sigaction(SIGTERM, &action, NULL);
+    sigaction(SIGINT, &action, NULL);
 
     const char* environment_sample_period = getenv("PBE_SAMPLE_PERIOD");
     int sample_period = DEFAULT_SAMPLE_PERIOD;
@@ -112,6 +114,8 @@ int main(int argc, char** argv) {
 
     struct sampler_receiver sample_receiver = {NULL, NULL, NULL, sample_receiver_func };
 
+    fprintf(stdout, "{\"settings\": {\"sample_period\": %d, \"general_cpuid_list\": %s, \"nvmm_cpuid_list\": %s}, \"records\": \n", sample_period, all_cores, nvmm_cores);
+
     memmkcache_init(&memmkcache, &expiry_default);
     procaff_init(&procaff);
     nvmm_lookup_init(&nvmm);
@@ -135,8 +139,16 @@ int main(int argc, char** argv) {
     }
 
     LOG_INFO("Received SIGTERM signal");
+
+
+    struct timespec cputime_sampler, cputime_access;
+    sampler_cputime(&sampler_context, &cputime_sampler);
+    access_accounting_cputime(&accounting, &cputime_access);
+    fprintf(stdout, ", \"debug\": {\"sampler_cputime_ms\": %zu, \"access_cputime_ms\": %zu}}\n", TIMESPEC_TO_MS(cputime_sampler), TIMESPEC_TO_MS(cputime_access));
+
     access_accounting_deinit(&accounting);
     sampler_deinit(&sampler_context);
+
     nvmm_lookup_deinit(&nvmm);
     procaff_deinit(&procaff);
     memmkcache_deinit(&memmkcache);

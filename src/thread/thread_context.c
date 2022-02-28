@@ -26,6 +26,12 @@ bool thread_signal_stop(struct thread_context* context) {
     context->child_context.state = STOP_REQUESTED;
 }
 
+void thread_cputime(struct thread_context* context, struct timespec *cputime) {
+    clockid_t threadClockId;
+    pthread_getcpuclockid(context->pthread_reference, &threadClockId);
+    clock_gettime(threadClockId, cputime);
+}
+
 bool thread_join(struct thread_context* context) {
     LOG_TRACE("Joining thread");
     int ret = pthread_join(context->pthread_reference, NULL);

@@ -18,4 +18,5 @@ struct sampler_context {
 bool sampler_init(struct sampler_context* context, struct perf_event_attr *perf_attr,
         struct sampler_receiver* sample_receiver);
 bool sampler_core_register(struct sampler_context* context, int cpu_id);
+void sampler_cputime(struct sampler_context *context, struct timespec *cputime);
 bool sampler_deinit(struct sampler_context* context);

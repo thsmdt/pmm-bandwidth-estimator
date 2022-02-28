@@ -103,6 +103,10 @@ bool access_accounting_write(struct access_accounting *context, pid_t pid, pid_t
     return ret;
 }
 
+void access_accounting_cputime(struct access_accounting *context, struct timespec *cputime) {
+    thread_cputime(&context->worker_dump, cputime);
+}
+
 bool access_accounting_instruction_get(struct access_accounting *context, struct access_accounting_instruction *out, pid_t pid, void* insn_ptr) {
     bool ret = false;
     out->access_size = 0;
