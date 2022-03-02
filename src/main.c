@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 
     struct sampler_receiver sample_receiver = {NULL, NULL, NULL, sample_receiver_func };
 
-    fprintf(stdout, "{\"settings\": {\"sample_period\": %d, \"general_cpuid_list\": %s, \"nvmm_cpuid_list\": %s}, \"records\": \n", sample_period, all_cores, nvmm_cores);
+    fprintf(stdout, "{\"settings\": {\"sample_period\": %d, \"general_cpuid_list\": \"%s\", \"nvmm_cpuid_list\": \"%s\"}, \"records\": \n", sample_period, all_cores, nvmm_cores);
 
     memmkcache_init(&memmkcache, &expiry_default);
     procaff_init(&procaff);
