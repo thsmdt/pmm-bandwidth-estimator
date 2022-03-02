@@ -27,7 +27,7 @@ void sampler_worker(void* argument) {
         clock_gettime(CLOCK_REALTIME, &interval_end);
 
         struct timespec time_passed, time_to_sleep, remaining_sleep;
-        timespec_diff(&time_passed, &interval_start, &interval_end);
+        timespec_diff(&time_passed, &interval_end, &interval_start);
         if (timespec_diff(&remaining_sleep, &max_sleep_duration, &time_passed) == 0) {
             do {
                 time_to_sleep = remaining_sleep;
