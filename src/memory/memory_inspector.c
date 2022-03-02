@@ -94,6 +94,7 @@ bool meminspect_update(struct meminspect_context *context) {
             }
         }
         // process single line_content
+        memregion_deinit(&current_range_entry->region);
         int ret = memregion_init_by_line(&current_range_entry->region, line_content);
         if(!ret) {
             LOG_ERROR("Issue parsing range from line. Freeing current memregion_cache progress");
@@ -142,11 +143,7 @@ void meminspector_cache_free(struct memregion_list *range) {
 }
 
 struct memregion_list* meminspector_range_free(struct memregion_list *range) {
-    void* label = range->region.label;
-    if(label) {
-        free(label);
-    }
-
+    memregion_deinit(&range->region);
     struct memregion_list* next = range->next;
     free(range);
 
