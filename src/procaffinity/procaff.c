@@ -106,7 +106,6 @@ bool procaff_expire_process_ptr(struct procaff_context *context, struct procaff_
     if(dg && dg->id != process->group) {
         procaff_process_update(process,dg->id, &dg->default_expiry);
         procaff_policy_set(process->pid, &dg->cores);
-        printf("%d\n", process->pid);
     } else {
         procaff_destroy_process_ptr(context, process);
     }
