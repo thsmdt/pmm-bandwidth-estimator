@@ -145,10 +145,11 @@ int main(int argc, char** argv) {
     struct timespec cputime_sampler, cputime_access;
     sampler_cputime(&sampler_context, &cputime_sampler);
     access_accounting_cputime(&accounting, &cputime_access);
-    fprintf(stdout, ", \"debug\": {\"sampler_cputime_ms\": %zu, \"access_cputime_ms\": %zu}}\n", TIMESPEC_TO_MS(cputime_sampler), TIMESPEC_TO_MS(cputime_access));
 
     sampler_deinit(&sampler_context);
     access_accounting_deinit(&accounting);
+
+    fprintf(stdout, ", \"debug\": {\"sampler_cputime_ms\": %zu, \"access_cputime_ms\": %zu}}\n", TIMESPEC_TO_MS(cputime_sampler), TIMESPEC_TO_MS(cputime_access));
 
     nvmm_lookup_deinit(&nvmm);
     procaff_deinit(&procaff);
