@@ -103,6 +103,7 @@ int main(int argc, char** argv) {
     attr.config = 0x82d0; // mem_inst_retired.all_stores *
     attr.sample_period =  sample_period;
     attr.sample_type = PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_ADDR;
+    attr.pinned = 1;
 
     attr.disabled = 0;
     attr.precise_ip = 3;
