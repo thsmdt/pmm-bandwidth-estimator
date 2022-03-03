@@ -10,7 +10,7 @@ enum thread_state {
 
 struct thread_exec_context {
     void* thread_argument;
-    enum thread_state state;
+    volatile enum thread_state state;
 };
 
 bool thread_exec_init(struct thread_exec_context* exec_context, void* argument);
