@@ -15,7 +15,7 @@ static inline void expiry_now(struct timespec *time) {
 
 static inline void expiry_extend(struct timespec *base, struct timespec *extension) {
     base->tv_nsec += extension->tv_nsec;
-    base->tv_sec += extension->tv_sec + extension->tv_nsec/NANOSECONDS_IN_A_SECOND;
+    base->tv_sec += extension->tv_sec + base->tv_nsec/NANOSECONDS_IN_A_SECOND;
     base->tv_nsec %= NANOSECONDS_IN_A_SECOND;
 }
 
@@ -25,7 +25,6 @@ static inline void expiry_in(struct timespec *base, struct timespec *extension) 
 }
 
 static inline bool expiry_passed(struct timespec *now, struct timespec *time) {
-
     if (time->tv_sec == now->tv_sec)
         return time->tv_nsec <= now->tv_nsec;
     else
