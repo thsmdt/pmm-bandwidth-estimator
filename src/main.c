@@ -147,8 +147,8 @@ int main(int argc, char** argv) {
     access_accounting_cputime(&accounting, &cputime_access);
     fprintf(stdout, ", \"debug\": {\"sampler_cputime_ms\": %zu, \"access_cputime_ms\": %zu}}\n", TIMESPEC_TO_MS(cputime_sampler), TIMESPEC_TO_MS(cputime_access));
 
-    access_accounting_deinit(&accounting);
     sampler_deinit(&sampler_context);
+    access_accounting_deinit(&accounting);
 
     nvmm_lookup_deinit(&nvmm);
     procaff_deinit(&procaff);
