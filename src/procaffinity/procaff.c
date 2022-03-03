@@ -13,6 +13,7 @@ struct procaff_group* procaff_group_exists(struct procaff_context *context, proc
 bool procaff_destroy_group_ptr(struct procaff_context *context, struct procaff_group *group);
 
 struct procaff_process* procaff_process_known(struct procaff_context *context, pid_t pid);
+bool procaff_expire_process_ptr(struct procaff_context *context, struct procaff_process *process);
 bool procaff_destroy_process_ptr(struct procaff_context *context, struct procaff_process *group);
 
 void procaff_policy_set(pid_t pid, cpu_set_t *cpu_set);
@@ -22,6 +23,7 @@ void procaff_policy_reset(pid_t pid);
 bool procaff_init(struct procaff_context *context) {
     list_init(&context->groups);
     list_init(&context->processes);
+    context->default_group = NULL;
     return true;
 }
 
@@ -75,6 +77,10 @@ bool procaff_destroy_group_ptr(struct procaff_context *context, struct procaff_g
         return false;
     }
 
+    if(group == context->default_group) {
+        context->default_group = NULL;
+    }
+
     struct procaff_process *current, *next;
     list_for_each_entry_safe(current, next, &context->processes, list) {
         if(current->group == group->id) {
@@ -85,6 +91,25 @@ bool procaff_destroy_group_ptr(struct procaff_context *context, struct procaff_g
     list_remove(&group->list);
     procaff_group_deinit(group);
     free(group);
+    return true;
+}
+
+bool procaff_expire_process_ptr(struct procaff_context *context, struct procaff_process *process) {
+    if(!process) {
+        LOG_TRACE("No process was passed.");
+        return false;
+    }
+
+    struct procaff_group *dg = context->default_group;
+
+    if(dg && dg->id != process->group) {
+        procaff_process_update(process,dg->id, &dg->default_expiry);
+        procaff_policy_set(process->pid, &dg->cores);
+        printf("%d\n", process->pid);
+    } else {
+        procaff_destroy_process_ptr(context, process);
+    }
+
     return true;
 }
 
@@ -102,6 +127,17 @@ bool procaff_destroy_process_ptr(struct procaff_context *context, struct procaff
     return true;
 }
 
+bool procaff_default_group(struct procaff_context *context, procaff_group_t default_group) {
+    struct procaff_group *g = procaff_group_exists(context, default_group);
+    if(!g) {
+        context->default_group = NULL;
+        LOG_ERROR("Could not set group=%d as default -- group does not exist", cpuid, group);
+        return false;
+    }
+
+    context->default_group = g;
+    return true;
+}
 
 bool procaff_assign_core(struct procaff_context *context, procaff_group_t group, int cpuid) {
     struct procaff_group *g = procaff_group_exists(context, group);
@@ -144,18 +180,20 @@ bool procaff_process_assign(struct procaff_context *context, procaff_group_t gro
     list_for_each_entry_safe(current, next, &context->processes, list) {
         if(current->pid == pid) {
             match = current;
+            if(procaff_process_update(match, group, &g->default_expiry)) {
+                procaff_policy_set(match->pid, &g->cores);
+            }
         } else {
             // check if process expired, if so handle
             if(procaff_process_is_expired(current)) {
-                LOG_DEBUG("Found expired pid=%d while assigning/updating entry for pid=%d -- removing expired entry", current->pid, pid);
-                procaff_destroy_process_ptr(context, current);
+                LOG_DEBUG("Found expired pid=%d while assigning/updating entry for pid=%d -- expiring entry", current->pid, pid);
+                procaff_expire_process_ptr(context, current);
             }
         }
     }
 
     // update match or create new entry
     if(match) {
-        procaff_process_update(match, group, &g->default_expiry);
         return true;
     }
 

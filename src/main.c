@@ -124,6 +124,7 @@ int main(int argc, char** argv) {
 
     procaff_create_group(&procaff, 0, &expiry_default);
     procaff_create_group(&procaff, 1, &expiry_nvmm);
+    procaff_default_group(&procaff, 0);
     for(cpuid_t core = 0; core < num_cpu_cores; core++) {
         if(cpu_in_cpulist(all_cores, core)) {
             sampler_core_register(&sampler_context, core);

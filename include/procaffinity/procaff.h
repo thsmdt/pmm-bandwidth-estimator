@@ -8,6 +8,7 @@
 struct procaff_context {
     struct list_node groups;
     struct list_node processes;
+    struct procaff_group* default_group;
 };
 
 bool procaff_init(struct procaff_context *context);
@@ -15,6 +16,7 @@ bool procaff_deinit(struct procaff_context *context);
 
 bool procaff_create_group(struct procaff_context *context, procaff_group_t id, struct timespec *default_expiry);
 bool procaff_destroy_group(struct procaff_context *context, procaff_group_t id);
+bool procaff_default_group(struct procaff_context *contecxt, procaff_group_t id);
 bool procaff_assign_core(struct procaff_context *context, procaff_group_t group, int cpuid);
 bool procaff_unassign_core(struct procaff_context *context, procaff_group_t group, int cpuid);
 
