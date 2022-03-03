@@ -37,7 +37,7 @@ bool procaff_deinit(struct procaff_context *context) {
     return true;
 }
 
-bool procaff_create_group(struct procaff_context *context, procaff_group_t id, struct timespec *default_expiry) {
+bool procaff_create_group(struct procaff_context *context, procaff_group_t id, struct timespec *default_expiry, bool sticky) {
     struct procaff_group* exists = procaff_group_exists(context, id);
     if(exists) {
         LOG_ERROR("Tried to create a group with already associated id=%d", id);
@@ -50,7 +50,7 @@ bool procaff_create_group(struct procaff_context *context, procaff_group_t id, s
         return false;
     }
 
-    if(!procaff_group_init(group, id, default_expiry)) {
+    if(!procaff_group_init(group, id, default_expiry, sticky)) {
         LOG_ERROR("Unable to initialize created group");
         goto free_group;
     }
@@ -181,14 +181,20 @@ bool procaff_process_assign(struct procaff_context *context, procaff_group_t gro
     expiry_now(&now);
     struct procaff_process *current, *next, *match = NULL;
     list_for_each_entry_safe(current, next, &context->processes, list) {
+        bool process_expired = procaff_process_is_expired(current, &now);
         if(current->pid == pid) {
             match = current;
+            struct procaff_group *current_group = procaff_group_exists(context, match->group);
+            if(current_group->sticky && current_group != g && !process_expired) {
+                continue; // sticky group, but foreign assignment attempt - do nothing
+            }
+
             if(procaff_process_update(match, group, &g->default_expiry)) {
                 procaff_policy_set(match->pid, &g->cores);
             }
         } else {
             // check if process expired, if so handle
-            if(procaff_process_is_expired(current, &now)) {
+            if(process_expired) {
                 LOG_DEBUG("Found expired pid=%d while assigning/updating entry for pid=%d -- expiring entry", current->pid, pid);
                 procaff_expire_process_ptr(context, current);
             }

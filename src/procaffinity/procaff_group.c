@@ -2,12 +2,13 @@
 
 #include <logger.h>
 
-bool procaff_group_init(struct procaff_group *context, procaff_group_t gid, const struct timespec *default_expiry) {
+bool procaff_group_init(struct procaff_group *context, procaff_group_t gid, const struct timespec *default_expiry, bool sticky_group) {
     // do not init `list`: will be done from user
 
     context->id = gid;
     context->default_expiry.tv_sec = default_expiry->tv_sec;
     context->default_expiry.tv_nsec = default_expiry->tv_nsec;
+    context->sticky = sticky_group;
     CPU_ZERO(&context->cores);
     return true;
 }

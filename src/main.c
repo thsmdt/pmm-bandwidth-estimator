@@ -121,8 +121,8 @@ int main(int argc, char** argv) {
     sampler_init(&sampler_context, &attr, &sample_receiver);
     access_accounting_init(&accounting, &memmkcache);
 
-    procaff_create_group(&procaff, 0, &expiry_default);
-    procaff_create_group(&procaff, 1, &expiry_nvmm);
+    procaff_create_group(&procaff, 0, &expiry_default, false);
+    procaff_create_group(&procaff, 1, &expiry_nvmm, true);
     procaff_default_group(&procaff, 0);
     for(cpuid_t core = 0; core < num_cpu_cores; core++) {
         if(cpu_in_cpulist(all_cores, core)) {
