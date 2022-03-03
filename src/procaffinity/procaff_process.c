@@ -14,8 +14,8 @@ bool procaff_process_deinit(struct procaff_process *context) {
     return true;
 }
 
-bool procaff_process_is_expired(struct procaff_process *context) {
-    return expiry_passed(&context->expiry_time);
+bool procaff_process_is_expired(struct procaff_process *context, struct timespec *now) {
+    return expiry_passed(now, &context->expiry_time);
 }
 
 // return true if group changed

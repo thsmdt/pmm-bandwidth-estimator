@@ -64,7 +64,6 @@ void sample_receiver_func(cpuid_t cpuid, const struct perf_event_header* ph) {
     }
 
     procaff_group_t out = 0;
-    if(procaff_process_get(&procaff, &out, ps->tid) && out == 1) return;
     procaff_process_assign(&procaff, isNVMM ? 1 : 0, ps->tid);
 }
 

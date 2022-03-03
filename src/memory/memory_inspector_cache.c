@@ -24,6 +24,9 @@ void meminscache_deinit(struct meminscache_context *context) {
 }
 
 struct meminspect_context* meminscache_get(struct meminscache_context *context, pid_t pid) {
+    struct timespec now;
+    expiry_now(&now);
+
     struct meminscache_entry *current, *upnext, *match = NULL;
     list_for_each_entry_safe(current, upnext, &context->cache, list) {
         if(current->inspector->pid == pid) {
@@ -31,7 +34,7 @@ struct meminspect_context* meminscache_get(struct meminscache_context *context, 
             match = current;
         }
 
-        if(expiry_passed(&current->expires_after)) {
+        if(expiry_passed(&now, &current->expires_after)) {
             meminscache_entry_purge(current);
         }
     }

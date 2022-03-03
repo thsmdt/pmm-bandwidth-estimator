@@ -25,6 +25,9 @@ void memmkcache_deinit(struct memmkcache_context *context) {
 }
 
 struct memmock_context* memmkcache_get(struct memmkcache_context *context, pid_t pid) {
+    struct timespec now;
+    expiry_now(&now);
+
     struct memmkcache_entry *current, *upnext, *match = NULL;
     list_for_each_entry_safe(current, upnext, &context->cache, list) {
         if(current->memory_mock->pid == pid) {
@@ -32,7 +35,7 @@ struct memmock_context* memmkcache_get(struct memmkcache_context *context, pid_t
             match = current;
         }
 
-        if(expiry_passed(&current->expires_after)) {
+        if(expiry_passed(&now, &current->expires_after)) {
             memmkcache_entry_purge(current);
         }
     }

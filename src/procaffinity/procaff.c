@@ -7,6 +7,7 @@
 #include <logger.h>
 #include <procaffinity/procaff_process.h>
 #include <sys/sysinfo.h>
+#include "expiry.h"
 
 procaff_group_t procaff_cpu_assignee(struct procaff_context *context, int cpuid);
 struct procaff_group* procaff_group_exists(struct procaff_context *context, procaff_group_t group);
@@ -176,6 +177,8 @@ bool procaff_process_assign(struct procaff_context *context, procaff_group_t gro
         return false;
     }
 
+    struct timespec now;
+    expiry_now(&now);
     struct procaff_process *current, *next, *match = NULL;
     list_for_each_entry_safe(current, next, &context->processes, list) {
         if(current->pid == pid) {
@@ -185,7 +188,7 @@ bool procaff_process_assign(struct procaff_context *context, procaff_group_t gro
             }
         } else {
             // check if process expired, if so handle
-            if(procaff_process_is_expired(current)) {
+            if(procaff_process_is_expired(current, &now)) {
                 LOG_DEBUG("Found expired pid=%d while assigning/updating entry for pid=%d -- expiring entry", current->pid, pid);
                 procaff_expire_process_ptr(context, current);
             }
