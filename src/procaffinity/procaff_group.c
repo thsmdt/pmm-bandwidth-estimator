@@ -13,7 +13,7 @@ bool procaff_group_init(struct procaff_group *context, procaff_group_t gid, cons
     return true;
 }
 bool procaff_group_deinit(struct procaff_group *context) {
-    CPU_ZERO(&context->default_expiry);
+    CPU_ZERO(&context->cores);
 }
 
 bool procaff_group_core_assign(struct procaff_group *context, int cpuid) {
