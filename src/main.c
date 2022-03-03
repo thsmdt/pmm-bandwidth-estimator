@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
     LOG_INFO("Preparing start of environment with sampling rate=%d", sample_period);
     int num_cpu_cores = get_nprocs();
     cpuid_t worker_thread_core = 0;
-    struct timespec expiry_default = {60, 0}, expiry_nvmm = {30, 0};
+    struct timespec expiry_default = {60, 0}, expiry_nvmm = {0, 200000000};
 
     struct perf_event_attr attr;
     memset(&attr, 0, sizeof(struct perf_event_attr));
