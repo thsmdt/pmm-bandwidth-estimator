@@ -110,7 +110,12 @@ bool meminspect_update(struct meminspect_context *context) {
 
     if(current_range_entry) {
         meminspector_cache_free(current_range_entry);
-        previous_range_entry->next = NULL;
+        if(previous_range_entry == NULL) {
+            context->memregion_cache = NULL;
+        }
+        else {
+            previous_range_entry->next = NULL;
+        }
     }
 
     if(!feof(maps_file) || ferror(maps_file)) {
