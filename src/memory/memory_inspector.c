@@ -21,6 +21,7 @@ void meminspect_deinit(struct meminspect_context *context) {
     if(context->memregion_cache != NULL) {
         meminspector_cache_free(context->memregion_cache);
     }
+    context->memregion_cache = NULL;
 }
 
 const struct memregion_context* meminspect_lookup_region(struct meminspect_context *context, const void *address) {
@@ -81,7 +82,9 @@ bool meminspect_update(struct meminspect_context *context) {
             if(!current_range_entry) {
                 LOG_ERROR("Unable to allocate memory for memory region list. Freeing current cache progress.");
                 free(line_content);
+
                 meminspector_cache_free(context->memregion_cache);
+                context->memregion_cache = NULL;
                 return false;
             }
             memset(current_range_entry, 0, sizeof(struct memregion_list));
@@ -99,7 +102,9 @@ bool meminspect_update(struct meminspect_context *context) {
         if(!ret) {
             LOG_ERROR("Issue parsing range from line. Freeing current memregion_cache progress");
             free(line_content);
+
             meminspector_cache_free(context->memregion_cache);
+            context->memregion_cache = NULL;
             return false;
         }
 
@@ -121,12 +126,14 @@ bool meminspect_update(struct meminspect_context *context) {
     if(!feof(maps_file) || ferror(maps_file)) {
         LOG_ERROR("Error occurred during the processing of maps file!");
         meminspector_cache_free(context->memregion_cache);
+        context->memregion_cache = NULL;
         return false;
     }
 
     if(fclose(maps_file)) {
         LOG_ERROR("Error closing file=%s", filepath_buffer);
         meminspector_cache_free(context->memregion_cache);
+        context->memregion_cache = NULL;
         return false;
     }
 

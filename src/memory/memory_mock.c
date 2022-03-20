@@ -83,6 +83,8 @@ void memmock_memview_cache_invalidate(struct memmock_context *context) {
         free(current);
         current = next;
     }
+
+    context->memview_cache = NULL;
 }
 
 struct memview_context* memmock_memview_cache_populate(struct memmock_context *context, const struct memregion_context *memregion) {
