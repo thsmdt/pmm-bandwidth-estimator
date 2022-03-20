@@ -33,6 +33,7 @@ struct memmock_context* memmkcache_get(struct memmkcache_context *context, pid_t
         if(current->memory_mock->pid == pid) {
             expiry_in(&current->expires_after, &context->expiry);
             match = current;
+            continue;
         }
 
         if(expiry_passed(&now, &current->expires_after)) {
