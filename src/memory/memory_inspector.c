@@ -97,8 +97,10 @@ bool meminspect_update(struct meminspect_context *context) {
                 previous_range_entry->next = current_range_entry;
             }
         }
+        else {
+            memregion_deinit(&current_range_entry->region);
+        }
         // process single line_content
-        memregion_deinit(&current_range_entry->region);
         int ret = memregion_init_by_line(&current_range_entry->region, line_content);
         if(!ret) {
             LOG_ERROR("Issue parsing range from line. Freeing current memregion_cache progress");
