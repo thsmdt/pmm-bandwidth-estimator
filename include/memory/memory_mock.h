@@ -15,7 +15,7 @@ struct memmock_context {
     struct memview_list *memview_cache;
 };
 
-int memmock_init(struct memmock_context *context, pid_t pid);
+bool memmock_init(struct memmock_context *context, pid_t pid);
 int memmock_deinit(struct memmock_context *context);
 
 void* memmock_get(struct memmock_context *context, void* addr);

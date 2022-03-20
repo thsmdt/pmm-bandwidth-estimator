@@ -8,10 +8,12 @@ void memmock_memview_cache_invalidate(struct memmock_context *context);
 bool memmock_memview_cache_append(struct memmock_context *context, struct memview_context *memview);
 
 
-int memmock_init(struct memmock_context *context, pid_t pid) {
+bool memmock_init(struct memmock_context *context, pid_t pid) {
+    bool ret = false;
     context->pid = pid;
     context->memview_cache = NULL;
-    meminspect_init(&context->inspector, pid);
+    ret = meminspect_init(&context->inspector, pid);
+    return ret;
 }
 
 int memmock_deinit(struct memmock_context *context) {

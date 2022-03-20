@@ -29,7 +29,7 @@ struct memregion_context {
     const char *label;
 };
 
-int memregion_init(struct memregion_context *context, void* addr_start, size_t length, bool perm_read, bool perm_write,
+bool memregion_init(struct memregion_context *context, void* addr_start, size_t length, bool perm_read, bool perm_write,
                    bool perm_exec, bool perm_private, dev_t device_minor, dev_t device_major, size_t inode,
                    size_t offset, const char* label);
 int memregion_init_by_line(struct memregion_context *context, const char* proc_maps_line);

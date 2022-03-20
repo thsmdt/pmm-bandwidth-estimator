@@ -6,14 +6,14 @@
 
 #include <logger.h>
 
-int memregion_init(struct memregion_context *context, void* addr_start, size_t length, bool perm_read, bool perm_write, bool perm_exec,
+bool memregion_init(struct memregion_context *context, void* addr_start, size_t length, bool perm_read, bool perm_write, bool perm_exec,
                    bool perm_private, dev_t device_minor, dev_t device_major, size_t inode, size_t offset,
                    const char* label) {
     if(label) {
         size_t label_size = strlen(label) + 1;
         char *label_temp = malloc(label_size);
         if(!label_temp) {
-            return -1;
+            return false;
         }
         strncpy(label_temp, label, label_size);
         label = label_temp;
@@ -30,6 +30,8 @@ int memregion_init(struct memregion_context *context, void* addr_start, size_t l
     context->inode = inode;
     context->offset = offset;
     context->label = label;
+
+    return true;
 }
 
 #define DEVICE_INDEX(val) (unsigned char)((val)&0xFFFF)
