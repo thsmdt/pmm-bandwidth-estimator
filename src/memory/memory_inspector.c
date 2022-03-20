@@ -25,11 +25,11 @@ void meminspect_deinit(struct meminspect_context *context) {
 }
 
 const struct memregion_context* meminspect_lookup_region(struct meminspect_context *context, const void *address) {
-    if(context->memregion_cache == NULL) {
+    const struct memregion_list *cache_entry = context->memregion_cache;
+    if(cache_entry == NULL) {
         return NULL;
     }
 
-    const struct memregion_list *cache_entry = context->memregion_cache;
     while(!meminspector_range_matches_address(&cache_entry->region, address)) {
         if(cache_entry->next == NULL) {
             return NULL;
